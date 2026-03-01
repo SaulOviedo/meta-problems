@@ -8,8 +8,9 @@ client = OpenAI(api_key=LLM_API_KEY)
 def conduct_interview(persona, niche, depth=3):
     """
     Conducts a recursive "5 Whys" style interview with a synthetic persona.
+    Returns the full interview log.
     """
-    problems = []
+    interview_log = []
     initial_question = f"Hola {persona['name']}. Como {persona['title']} en la industria de '{niche}', ¿cuáles son las mayores frustraciones o ineficiencias que enfrentas en tu día a día?"
 
     question = initial_question
@@ -42,10 +43,11 @@ def conduct_interview(persona, niche, depth=3):
             answer = response.choices[0].message.content.strip()
             print(f"  Respuesta: {answer}")
 
+            interview_log.append({"question": question, "answer": answer})
+
             # Extract problem and formulate next question
             problem = extract_problem_from_answer(answer)
             if problem:
-                problems.append(problem)
                 question = f"Interesante. ¿Y por qué crees que ocurre eso? ¿Cuál es la causa raíz de '{problem}'?"
             else:
                 break  # End interview if no clear problem is identified
@@ -54,7 +56,7 @@ def conduct_interview(persona, niche, depth=3):
             print(f"Error durante la entrevista: {e}")
             break
 
-    return problems
+    return interview_log
 
 def extract_problem_from_answer(answer):
     """
