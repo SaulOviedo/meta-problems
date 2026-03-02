@@ -9,13 +9,6 @@ LLM_API_KEY = os.getenv("LLM_API_KEY")
 LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4")
 
 # Configuration for Simulation
-INDUSTRY_NICHES = [
-    "logística química",
-    "seguros de carga",
-    "minería de tierras raras",
-    "gestión de residuos industriales",
-    "agricultura de precisión"
-]
 
 # Configuration for Personas
 PERSONA_ARCHETYPES = {

@@ -4,30 +4,36 @@ import random
 import os
 from datetime import datetime
 from .simulation import run_simulation
-from .config import INDUSTRY_NICHES
+from .context import generate_context
 
-def save_results_to_file(simulation_data):
+def save_results_to_file(simulation_data, context):
     """
     Saves the full simulation data to a Markdown file in the data directory.
     """
     if not os.path.exists('data'):
         os.makedirs('data')
 
-    niche = simulation_data['niche']
+    industry = context['industry']
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"data/resultado_{niche.replace(' ', '_')}_{timestamp}.md"
+    filename = f"data/resultado_{industry.replace(' ', '_')}_{timestamp}.md"
 
     with open(filename, 'w', encoding='utf-8') as f:
-        f.write(f"# Simulación de Meta-Problemas: {niche}\n\n")
+        f.write(f"# Simulación de Meta-Problemas: {industry} en {context['location']}\n\n")
         f.write(f"**Fecha:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
         
         f.write("## Entrevistas de Fricción\n\n")
         for interview in simulation_data['interviews']:
             persona = interview['persona']
-            f.write(f"### Perfil: {persona['name']} ({persona['archetype']})\n\n")
-            f.write(f"**Rol:** {persona['title']}\n\n")
-            f.write(f"**Bio:** {persona['bio']}\n\n")
+            f.write(f"### Perfil: {persona.get('name', 'N/A')} ({persona.get('archetype', 'N/A')})\n\n")
             
+            # Escribir todos los detalles del perfil de la persona
+            for key, value in persona.items():
+                # Formatear la clave para que sea legible
+                formatted_key = key.replace('_', ' ').title()
+                if formatted_key not in ['Name', 'Archetype']: # Evitar duplicados
+                    f.write(f"**{formatted_key}:** {value}\n")
+            f.write("\n")
+
             f.write("#### Registro de la Entrevista\n\n")
             for entry in interview['log']:
                 f.write(f"**P:** {entry['question']}\n\n")
@@ -51,14 +57,17 @@ def main():
     """
     print("Iniciando Meta-Problems...")
 
-    # 1. Selección de Nicho
-    selected_niche = random.choice(INDUSTRY_NICHES)
-    print(f"Nicho seleccionado: {selected_niche}")
+    # 1. Generación de Contexto
+    context = generate_context()
+    print(f"Contexto seleccionado: Industria '{context['industry']}' en '{context['location']}'")
 
     # 2. Ejecución de la Simulación
-    simulation_results = run_simulation(selected_niche)
+    simulation_results = run_simulation(context)
 
-    # 3. Mostrar Resultados
+    # 3. Guardar Resultados
+    save_results_to_file(simulation_results, context)
+
+    # 4. Mostrar Resultados en Consola
     identified_problems = simulation_results['high_value_problems']
     if identified_problems:
         print("\nProblemas de Alto Valor Identificados:")
@@ -68,7 +77,7 @@ def main():
         print("\nNo se identificaron problemas de alto valor en esta simulación.")
 
     # 4. Guardar Resultados en Archivo
-    save_results_to_file(simulation_results)
+    save_results_to_file(simulation_results, context)
 
 if __name__ == "__main__":
     main()

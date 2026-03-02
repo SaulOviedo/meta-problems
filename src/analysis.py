@@ -46,10 +46,6 @@ def analyze_problems(problems):
                 {"role": "system", "content": "Eres un analista de negocios experto."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=500,
-            n=1,
-            stop=None,
-            temperature=0.3,
         )
         analysis_result = response.choices[0].message.content.strip()
 

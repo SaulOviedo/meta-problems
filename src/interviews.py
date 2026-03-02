@@ -5,22 +5,33 @@ from config import LLM_API_KEY, LLM_MODEL
 
 client = OpenAI(api_key=LLM_API_KEY)
 
-def conduct_interview(persona, niche, depth=3):
+def conduct_interview(persona, context, depth=3):
     """
     Conducts a recursive "5 Whys" style interview with a synthetic persona.
     Returns the full interview log.
     """
     interview_log = []
-    initial_question = f"Hola {persona['name']}. Como {persona['title']} en la industria de '{niche}', ¿cuáles son las mayores frustraciones o ineficiencias que enfrentas en tu día a día?"
+    initial_question = f"Hola {persona.get('name', 'N/A')}. Como {persona.get('current_position', 'un profesional')} en la industria de '{context['industry']}' en '{context['location']}', ¿cuáles son las mayores frustraciones o ineficiencias que enfrentas en tu día a día?"
 
     question = initial_question
     for i in range(depth):
         print(f"  Pregunta {i+1}: {question}")
-        prompt = f"""
-        Eres {persona['name']}, un {persona['title']} en la industria de '{niche}'.
-        Tu biografía es: {persona['bio']}
-        Tu arquetipo es: {persona['archetype']}
 
+        # Construir el perfil detallado para el system prompt
+        profile_details = "**TU PERFIL:**\n"
+        for key, value in persona.items():
+            formatted_key = key.replace('_', ' ').title()
+            profile_details += f"**{formatted_key}:** {value}\n"
+
+        system_prompt = f"""
+        Eres la persona con los datos provistos a continuación. No una copia, no una una versión, no una imitación. Eres la persona real con estos datos.
+        Por favor, actua de acuerdo a tu perfil y responde a las preguntas de la mejor manera posible.
+
+        {profile_details}
+        """
+
+        # Construct a more detailed context for the interview prompt
+        detailed_context = f"""
         Responde a la siguiente pregunta desde tu perspectiva, reflejando tu rol,
         experiencia y sesgos. Sé específico y da ejemplos concretos.
 
@@ -32,13 +43,12 @@ def conduct_interview(persona, niche, depth=3):
             response = client.chat.completions.create(
                 model=LLM_MODEL,
                 messages=[
-                    {"role": "system", "content": f"Eres {persona['name']}, un {persona['title']} en la industria de '{niche}'."},
-                    {"role": "user", "content": question}
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": detailed_context}
                 ],
                 max_tokens=200,
                 n=1,
                 stop=None,
-                temperature=0.5,
             )
             answer = response.choices[0].message.content.strip()
             print(f"  Respuesta: {answer}")

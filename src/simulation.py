@@ -5,16 +5,16 @@ from .interviews import conduct_interview, extract_problem_from_answer
 from .analysis import analyze_problems
 from .config import PERSONA_ARCHETYPES
 
-def run_simulation(niche):
+def run_simulation(context):
     """
-    Runs the full simulation for a given industry niche.
+    Runs the full simulation for a given context.
     Returns a dictionary with the full simulation data.
     """
-    print(f"\nIniciando simulación para la industria: {niche}")
+    print(f"\nIniciando simulación para la industria: {context['industry']} en {context['location']}")
 
     # 1. Generación de Personas Sintéticas
     num_personas = len(PERSONA_ARCHETYPES)
-    personas = generate_personas(niche, list(PERSONA_ARCHETYPES.keys()), num_personas)
+    personas = generate_personas(context, list(PERSONA_ARCHETYPES.keys()), num_personas)
     print(f"Se generaron {len(personas)} personas sintéticas.")
 
     # 2. Entrevistas de Fricción
@@ -22,7 +22,7 @@ def run_simulation(niche):
     all_problems = []
     for persona in personas:
         print(f"\nEntrevistando a: {persona['name']} ({persona['archetype']})")
-        interview_log = conduct_interview(persona, niche)
+        interview_log = conduct_interview(persona, context)
         interviews.append({"persona": persona, "log": interview_log})
         
         # Extract problems from the interview log
@@ -38,7 +38,8 @@ def run_simulation(niche):
         high_value_problems = analyze_problems(all_problems)
     
     return {
-        "niche": niche,
+        "industry": context['industry'],
+        "location": context['location'],
         "interviews": interviews,
         "high_value_problems": high_value_problems
     }
