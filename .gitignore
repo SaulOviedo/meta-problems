@@ -11,4 +11,4 @@ __pycache__/
 *.pyd
 
 # Ignore results
-data/
+data/outputs/

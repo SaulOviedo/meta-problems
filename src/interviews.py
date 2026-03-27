@@ -71,9 +71,6 @@ INTERVIEW_PHASES = [
     },
 ]
 
-# After the pain_points phase, we drill down with "5 Whys" before continuing.
-WHYS_DRILL_DEPTH = 2
-
 
 def _build_system_prompt(persona):
     profile_details = "**TU PERFIL:**\n"
@@ -107,13 +104,12 @@ def _ask(persona, question, conversation_history):
     return answer
 
 
-def conduct_interview(persona, context, whys_depth=WHYS_DRILL_DEPTH):
+def conduct_interview(persona, context):
     """
     Conducts a structured interview with a synthetic persona.
 
     Flow:
       1. Fixed phases covering company context, role, pain points, solution vision and WTP.
-      2. After the pain_points phase, runs a recursive "5 Whys" drill-down before continuing.
 
     Returns the full interview log as a list of {phase, question, answer} dicts.
     """
@@ -124,41 +120,17 @@ def conduct_interview(persona, context, whys_depth=WHYS_DRILL_DEPTH):
     position = persona.get('current_position', 'profesional')
     industry = context.get('industry', 'tu industria')
 
-    question_number = 1
-
-    for phase_config in INTERVIEW_PHASES:
+    for i, phase_config in enumerate(INTERVIEW_PHASES, start=1):
         phase = phase_config["phase"]
         question = phase_config["question"].format(
             name=name, position=position, industry=industry
         )
 
-        print(f"\n  [{question_number}] {question}")
+        print(f"\n  [{i}] {question}")
         try:
             answer = _ask(persona, question, conversation_history)
             print(f"  Respuesta: {answer}")
             interview_log.append({"phase": phase, "question": question, "answer": answer})
-            question_number += 1
-
-            # After identifying pain points, drill down with "5 Whys" before moving on
-            if phase == "pain_points":
-                problem = extract_problem_from_answer(answer)
-                for i in range(whys_depth):
-                    if not problem:
-                        break
-                    why_question = (
-                        f"Interesante. ¿Y por qué crees que ocurre eso? "
-                        f"¿Cuál es la causa raíz de '{problem[:120]}'?"
-                    )
-                    print(f"\n  [{question_number}] {why_question}")
-                    why_answer = _ask(persona, why_question, conversation_history)
-                    print(f"  Respuesta: {why_answer}")
-                    interview_log.append({
-                        "phase": f"why_{i+1}",
-                        "question": why_question,
-                        "answer": why_answer,
-                    })
-                    question_number += 1
-                    problem = extract_problem_from_answer(why_answer)
 
         except Exception as e:
             print(f"  Error en fase '{phase}': {e}")
@@ -167,17 +139,37 @@ def conduct_interview(persona, context, whys_depth=WHYS_DRILL_DEPTH):
     return interview_log
 
 
-def extract_problem_from_answer(answer):
-    """
-    Heuristic to extract a core problem sentence from a persona's answer.
-    """
-    keywords = [
-        "problema", "frustrante", "ineficiente", "difícil", "cuello de botella",
-        "retraso", "pérdida", "falla", "error", "manual", "tedioso", "lento",
-    ]
-    sentences = answer.split('.')
-    for sentence in sentences:
-        for keyword in keywords:
-            if keyword in sentence.lower():
-                return sentence.strip()
-    return None
+if __name__ == "__main__":
+    import argparse
+    import json
+    import os
+
+    parser = argparse.ArgumentParser(description="Stage 3: Conduct friction interview with a persona")
+    parser.add_argument("--input", default="data/fixtures/personas.json",
+                        help="Path to personas JSON (default: data/fixtures/personas.json)")
+    parser.add_argument("--context", default="data/fixtures/context.json",
+                        help="Path to context JSON (default: data/fixtures/context.json)")
+    parser.add_argument("--persona-index", type=int, default=0,
+                        help="Index of the persona to interview from the personas array (default: 0)")
+    parser.add_argument("--output", default="data/outputs/interviews_output.json",
+                        help="Path to write the output JSON (default: data/outputs/interviews_output.json)")
+    args = parser.parse_args()
+
+    with open(args.input, encoding="utf-8") as f:
+        personas = json.load(f)
+    with open(args.context, encoding="utf-8") as f:
+        context = json.load(f)
+
+    persona = personas[args.persona_index]
+    print(f"Interviewing: {persona.get('name')} ({persona.get('archetype')}) @ {persona.get('company')}")
+
+    interview_log = conduct_interview(persona, context)
+
+    result = {"persona": persona, "log": interview_log}
+
+    os.makedirs(os.path.dirname(args.output), exist_ok=True)
+    with open(args.output, "w", encoding="utf-8") as f:
+        json.dump(result, f, ensure_ascii=False, indent=2)
+
+    print(f"\nInterview complete: {len(interview_log)} exchanges")
+    print(f"\n✓ Output saved to {args.output}")

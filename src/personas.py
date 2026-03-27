@@ -102,3 +102,32 @@ def parse_persona_data(persona_text):
             if f"{key}:" in line:
                 profile[profile_key] = line.split(f"{key}:", 1)[1].strip()
     return profile
+
+
+if __name__ == "__main__":
+    import argparse
+    import json
+    import os
+
+    parser = argparse.ArgumentParser(description="Stage 2: Generate synthetic personas")
+    parser.add_argument("--input", default="data/fixtures/context.json",
+                        help="Path to context JSON (default: data/fixtures/context.json)")
+    parser.add_argument("--output", default="data/outputs/personas_output.json",
+                        help="Path to write the output JSON (default: data/outputs/personas_output.json)")
+    args = parser.parse_args()
+
+    with open(args.input, encoding="utf-8") as f:
+        context = json.load(f)
+
+    archetypes = list(PERSONA_ARCHETYPES.keys())
+    print(f"Generating {len(archetypes)} personas for: {context['industry']} in {context['location']}")
+    personas = generate_personas(context, archetypes, len(archetypes))
+
+    os.makedirs(os.path.dirname(args.output), exist_ok=True)
+    with open(args.output, "w", encoding="utf-8") as f:
+        json.dump(personas, f, ensure_ascii=False, indent=2)
+
+    print(f"\nGenerated {len(personas)} personas:")
+    for p in personas:
+        print(f"  - {p.get('name')} ({p.get('archetype')}) @ {p.get('company')}")
+    print(f"\n✓ Output saved to {args.output}")

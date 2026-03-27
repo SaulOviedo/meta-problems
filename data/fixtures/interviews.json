@@ -1,0 +1,75 @@
+[
+  {
+    "persona": {
+      "company": "Grupo Lactalis Venezuela",
+      "name": "Rafael Contreras",
+      "gender": "Male",
+      "age": "54",
+      "profession": "Ingeniero Agrónomo",
+      "title": "Gerente General de Operaciones Ganaderas",
+      "location": "Barinas, Venezuela",
+      "years_of_experience": "29",
+      "company_size": "750 empleados",
+      "company_arr": "45M",
+      "team_size": "38",
+      "industry": "Industria Ganadera",
+      "education": "Universidad Central de Venezuela, Ingeniería Agronómica",
+      "key_skills": "Gestión de producción ganadera, control de costos, negociación con proveedores, manejo de personal, cumplimiento normativo",
+      "interests": "Optimización de procesos tradicionales, economía agrícola, fútbol local, política nacional, conservación de recursos naturales",
+      "linkedin_summary": "Profesional con casi tres décadas liderando operaciones ganaderas en Venezuela, enfocado en la eficiencia y resultados financieros inmediatos. Escéptico de las modas tecnológicas, prioriza métodos comprobados y de bajo riesgo.",
+      "archetype": "veterano_cinico"
+    },
+    "log": [
+      {
+        "phase": "contexto_empresa",
+        "question": "Hola Rafael Contreras, gracias por tu tiempo. Para comenzar: ¿A qué se dedica exactamente la empresa donde trabajas? ¿Qué productos o servicios ofrece principalmente y a quién va dirigido su negocio?",
+        "answer": "Grupo Lactalis Venezuela se dedica principalmente a la producción y procesamiento de leche y sus derivados, con un enfoque importante en la cadena de valor desde la producción primaria —la ganadería lechera— hasta la industrialización y comercialización de productos terminados. Los principales productos son leche pasteurizada, leche UHT, quesos frescos y maduros, yogures y mantequilla, destinados al consumo masivo venezolano y al canal institucional."
+      },
+      {
+        "phase": "rol_y_dia_a_dia",
+        "question": "Entendido. ¿Cuál es tu rol específico dentro de la empresa y cómo es un día típico en tu trabajo? ¿Qué tareas realizas, con qué herramientas trabajas y con quién interactúas habitualmente?",
+        "answer": "Mi rol es Gerente General de Operaciones Ganaderas, responsable de todo lo que ocurre en el campo. Un día típico arranca antes de las 6am revisando reportes de ordeño de cada finca enviados por WhatsApp o correo. Si hay un problema urgente —baja de producción, corte eléctrico— debo buscar soluciones inmediatas. Luego hago recorridos físicos a fincas claves 2-3 veces por semana para revisar alimentación, estado de potreros y equipos."
+      },
+      {
+        "phase": "pain_points",
+        "question": "Pensando en tu día a día, ¿cuáles son los mayores problemas o fricciones que tú o tu equipo experimentan con más frecuencia? Por ejemplo: pérdidas de tiempo, tareas repetitivas, procesos manuales, falta de información, fallos de comunicación, cuellos de botella, etc.",
+        "answer": "Los problemas son crónicos. Primero: falta de información en tiempo real, dependemos de reportes manuales con retrasos e inconsistencias. Segundo: comunicación ineficiente entre campo y administración, los supervisores no reportan problemas a tiempo por miedo. Tercero: tareas manuales y papeleo innecesario, desde el registro de tratamientos veterinarios hasta el control de combustible todo depende de planillas a mano. Cuarto: pérdidas de tiempo en logística por rutas no optimizadas y camiones que esperan."
+      },
+      {
+        "phase": "why_1",
+        "question": "Interesante. ¿Y por qué crees que ocurre eso? ¿Cuál es la causa raíz de 'Los problemas son crónicos'?",
+        "answer": "Ocurre por una mezcla de infraestructura deficiente del país —sin señal ni electricidad estable no hay sistema digital que funcione— y una cultura de 'el jefe lo resuelve' donde el personal oculta fallos por miedo a represalias. Además hay falta de formación y alta rotación de personal, se entrena a alguien y emigra o cambia de rubro."
+      },
+      {
+        "phase": "why_2",
+        "question": "Interesante. ¿Y por qué crees que ocurre eso? ¿Cuál es la causa raíz de 'Ocurre por una mezcla de infraestructura deficiente del país'?",
+        "answer": "La causa más profunda es la resignación institucionalizada: después de años de apagones, escasez e inestabilidad, la gente deja de reportar problemas porque cree que igual no va a cambiar nada. No hay incentivos para la mejora continua, ni reconocimiento cuando alguien avisa a tiempo. La jerarquía rígida del campo agropecuario venezolano penaliza la iniciativa en lugar de fomentarla."
+      },
+      {
+        "phase": "profundidad_del_problema",
+        "question": "Gracias por compartir eso. ¿Podrías darme más contexto o ejemplos específicos de estos problemas? ¿Con qué frecuencia ocurren, qué impacto tienen en términos de tiempo o dinero perdido, y por qué crees que todavía no se han resuelto?",
+        "answer": "En una finca cercana a Sabaneta hubo un brote de mastitis. El caporal lo notó pero no avisó, intentó resolver con tratamiento casero. El reporte formal llegó al tercer día con 11 vacas afectadas y 1.800 litros de leche descartados —unos $800— más medicamentos y mano de obra extra. Esto ocurre al menos una vez al mes en distintos niveles. En registros veterinarios, en temporada de lluvias de 2023 encontramos diferencias del 20% entre registros en papel y el inventario real. No se ha resuelto porque cualquier solución tecnológica choca con la falta de conectividad y electricidad."
+      },
+      {
+        "phase": "intentos_previos",
+        "question": "¿Han intentado resolver estos problemas antes de alguna forma? ¿Qué soluciones o herramientas probaron y por qué no funcionaron o no fueron suficientes?",
+        "answer": "Implementamos tablets con software de registro en dos fincas, recomendadas por Lactalis Francia. No funcionó: dependían de Internet, el personal tenía miedo de romperlos y cuando fallaba el sistema volvían al cuaderno. También intentamos grupos de WhatsApp por finca pero no todos tienen smartphone, la señal es inestable y la información importante se pierde entre mensajes irrelevantes. Intentamos contratar un consultor de digitalización que propuso un ERP pero el costo de implementación y mantenimiento era inasumible para nuestra realidad."
+      },
+      {
+        "phase": "alcance_sistemico",
+        "question": "¿Crees que este problema es exclusivo de tu empresa o es algo común en tu industria en general? ¿Conoces a colegas o competidores que sufran el mismo problema?",
+        "answer": "No, definitivamente no es exclusivo. En reuniones de FEDEAGRO y encuentros de productores en Barinas y Portuguesa, todos se quejan de lo mismo: falta de conectividad, registros en papel, comunicación deficiente entre campo y administración. Una cooperativa de Guárico perdió una semana de producción porque los reportes de un brote de fiebre aftosa nunca llegaron a tiempo. En Machiques, un competidor directo lleva años probando herramientas digitales con resultados mediocres por los mismos problemas."
+      },
+      {
+        "phase": "vision_de_solucion",
+        "question": "Si existiera una solución ideal para estos problemas, ¿cómo imaginas que sería? ¿Sería algo digital (software, app, automatización) o algo físico (equipamiento, herramienta, máquina)? ¿Qué características no podrían faltar?",
+        "answer": "La solución ideal tiene que funcionar offline y sincronizarse cuando hay señal. Debe ser súper sencilla —pensada para gente de campo, no para ingenieros—, con íconos grandes y que se aprenda en una tarde. Tiene que ser robusta físicamente, no tablets frágiles. Y debe generar alertas reales cuando hay un problema urgente: baja de producción, incidente sanitario, falta de alimento. Nada de dashboards bonitos que nadie mira; quiero que me llame o me mande un mensaje cuando algo está mal."
+      },
+      {
+        "phase": "disposicion_a_pagar",
+        "question": "¿Crees que tu empresa estaría dispuesta a pagar por una solución así? ¿Quién tomaría esa decisión de compra dentro de la organización, y qué rango de inversión considerarías razonable para resolver estos problemas?",
+        "answer": "Si la solución reduce pérdidas y la gente la adopta de verdad, sí habría disposición. La decisión la toma un comité: Gerente General de ganadería, dirección financiera y gerencia de sistemas. Si evita perder 10.000 litros al mes —unos $3.000—, puedo justificar hasta $10.000-$20.000 anuales entre software, hardware y entrenamiento. Más de eso ya piden ver resultados antes de comprometerse. Y sin costos ocultos de mantenimiento ni dependencia de consultores externos."
+      }
+    ]
+  }
+]
