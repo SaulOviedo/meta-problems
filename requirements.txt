@@ -6,3 +6,6 @@ numpy
 scipy
 scikit-learn
 python-dotenv
+fastapi
+uvicorn[standard]
+sse-starlette

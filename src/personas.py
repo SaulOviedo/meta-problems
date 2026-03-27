@@ -5,7 +5,7 @@ from config import LLM_API_KEY, LLM_MODEL, PERSONA_ARCHETYPES
 
 client = OpenAI(api_key=LLM_API_KEY)
 
-def generate_personas(context, archetypes, num_personas):
+def generate_personas(context, archetypes, num_personas, event_callback=None):
     """
     Generates synthetic personas for a given context using an LLM.
     """
@@ -66,7 +66,14 @@ def generate_personas(context, archetypes, num_personas):
             persona_data = parse_persona_data(persona_text)
             persona_data['archetype'] = archetype_key
             personas.append(persona_data)
-            
+
+            if event_callback:
+                event_callback("persona_created", {
+                    "index": i,
+                    "total": num_personas,
+                    "persona": persona_data,
+                })
+
         except Exception as e:
             print(f"Error al generar persona: {e}")
             continue

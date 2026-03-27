@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meta-Problems</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d0d;
+      --surface: #141414;
+      --surface2: #1c1c1c;
+      --border: #2a2a2a;
+      --text: #e0e0e0;
+      --muted: #666;
+      --accent: #00ff88;
+      --accent-dim: #00ff8833;
+      --warn: #ffaa00;
+      --danger: #ff4444;
+      --low: #00cc66;
+      --med: #ffaa00;
+      --high: #ff4444;
+      --font: 'Courier New', Courier, monospace;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 13px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── Layout ── */
+    .app { max-width: 900px; margin: 0 auto; padding: 32px 20px 80px; }
+
+    /* ── Header ── */
+    .header { margin-bottom: 32px; }
+    .header h1 { font-size: 22px; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; }
+    .header p { color: var(--muted); margin-top: 4px; }
+
+    /* ── Section ── */
+    .section { margin-bottom: 28px; }
+    .section-title {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+      margin-bottom: 14px;
+    }
+
+    /* ── Form ── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group label { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+    .form-group input, .form-group select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 13px;
+      padding: 7px 10px;
+      border-radius: 3px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+    .form-group select option { background: var(--surface2); }
+
+    .btn-run {
+      margin-top: 16px;
+      background: var(--accent);
+      color: #000;
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      padding: 10px 24px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn-run:hover { opacity: 0.85; }
+    .btn-run:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Pipeline stages ── */
+    .pipeline { display: flex; gap: 0; margin-bottom: 4px; }
+    .stage {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-right: none;
+      background: var(--surface);
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .stage:last-child { border-right: 1px solid var(--border); }
+    .stage.active { border-color: var(--accent); background: var(--accent-dim); }
+    .stage.done { border-color: #333; }
+    .stage-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .stage.active .stage-dot { background: var(--accent); animation: pulse-anim 1.4s ease-in-out infinite; }
+    .stage.done .stage-dot { background: #444; }
+    .stage-label { font-size: 11px; color: var(--muted); }
+    .stage.active .stage-label { color: var(--accent); }
+    .stage.done .stage-label { color: #444; }
+    .stage-sub { font-size: 10px; color: var(--muted); margin-left: auto; }
+
+    /* ── Persona cards ── */
+    .personas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+    .persona-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 12px;
+      animation: fadeIn 0.3s ease;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .persona-card:hover { border-color: var(--accent); }
+    .persona-card .pname { font-size: 13px; color: var(--text); margin-bottom: 2px; }
+    .persona-card .ptitle { font-size: 11px; color: var(--muted); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .persona-card .pcompany { font-size: 11px; color: var(--muted); }
+    .archetype-tag {
+      display: inline-block;
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 2px;
+      padding: 1px 5px;
+      margin-top: 6px;
+    }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.15s ease;
+    }
+    .modal-overlay.hidden { display: none; }
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 24px;
+      width: 100%;
+      max-width: 700px;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 14px; right: 16px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: var(--font);
+      font-size: 18px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal-archetype { margin-bottom: 14px; }
+    .modal-name { font-size: 17px; color: var(--text); margin-bottom: 2px; }
+    .modal-subtitle { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+    .modal-divider { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+    .modal-row { display: flex; gap: 8px; margin-bottom: 6px; }
+    .modal-row-label {
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      min-width: 110px;
+      padding-top: 2px;
+      flex-shrink: 0;
+    }
+    .modal-row-value { font-size: 12px; color: var(--text); }
+
+    /* ── Interview cards ── */
+    .interviews-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+    .interview-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 12px;
+      animation: fadeIn 0.3s ease;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .interview-card:hover { border-color: var(--accent); }
+    .interview-card.running { border-color: var(--accent); }
+    .ic-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .ic-name { font-size: 13px; color: var(--text); }
+    .ic-archetype { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+    .ic-progress { font-size: 10px; color: var(--muted); }
+
+    /* Punto pulsante */
+    .pulse-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      animation: pulse-anim 1.4s ease-in-out infinite;
+    }
+    .pulse-dot.done { animation: none; background: #333; }
+
+    @keyframes pulse-anim {
+      0%, 100% { opacity: 1; box-shadow: 0 0 5px var(--accent); }
+      50%       { opacity: 0.25; box-shadow: none; }
+    }
+
+    /* Transcript inside modal */
+    .phase-block { margin-bottom: 12px; }
+    .phase-label {
+      font-size: 9px;
+      letter-spacing: 1px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .qa-q { color: var(--warn); margin-bottom: 2px; }
+    .qa-a { color: var(--text); padding-left: 12px; border-left: 2px solid var(--border); }
+
+    /* ── Analysis results ── */
+    .analysis-card {
+      background: var(--surface);
+      border: 1px solid var(--accent);
+      border-radius: 3px;
+      padding: 20px;
+      animation: fadeIn 0.4s ease;
+    }
+    .analysis-field { margin-bottom: 14px; }
+    .analysis-field-label {
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    .analysis-field-value { color: var(--text); }
+    .risks-list { list-style: none; }
+    .risks-list li::before { content: "• "; color: var(--danger); }
+    .risks-list li { color: var(--muted); }
+
+    .solutions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; margin-top: 8px; }
+    .solution-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 14px;
+    }
+    .solution-title { font-size: 13px; color: var(--text); margin-bottom: 6px; }
+    .solution-desc { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+    .solution-meta { display: flex; gap: 8px; align-items: center; }
+    .diff-badge {
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 2px;
+      font-weight: bold;
+    }
+    .diff-low { background: #00cc6622; color: var(--low); border: 1px solid var(--low); }
+    .diff-medium { background: #ffaa0022; color: var(--med); border: 1px solid var(--med); }
+    .diff-high { background: #ff444422; color: var(--high); border: 1px solid var(--high); }
+    .solution-time { font-size: 11px; color: var(--muted); }
+    .solution-rationale { font-size: 11px; color: var(--muted); margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; }
+
+    /* ── Misc ── */
+    .hidden { display: none; }
+    .elapsed { font-size: 11px; color: var(--muted); margin-top: 8px; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>Meta-Problems</h1>
+    <p>AI-powered industry pain point discovery</p>
+  </div>
+
+  <!-- Config form -->
+  <div class="section" id="config-section">
+    <div class="section-title">Configure Simulation</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Industry</label>
+        <input type="text" id="industry" placeholder="e.g. Industria Ganadera" />
+      </div>
+      <div class="form-group">
+        <label>Location</label>
+        <input type="text" id="location" placeholder="e.g. Venezuela" />
+      </div>
+      <div class="form-group">
+        <label>Founder Profile</label>
+        <select id="founder_profile">
+          <option value="tecnico">Tecnico</option>
+          <option value="no_tecnico">No tecnico</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Time to MVP (months)</label>
+        <input type="number" id="time_months" value="2" min="1" max="24" />
+      </div>
+      <div class="form-group">
+        <label>Capital</label>
+        <select id="capital">
+          <option value="bootstrapped">Bootstrapped</option>
+          <option value="pre_seed">Pre-seed</option>
+          <option value="seed">Seed</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Solution Type</label>
+        <select id="solution_type">
+          <option value="sin_preferencia">No preference</option>
+          <option value="saas">SaaS</option>
+          <option value="marketplace">Marketplace</option>
+          <option value="servicio_manual">Servicio manual</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Market Target</label>
+        <select id="market_target">
+          <option value="sin_preferencia">No preference</option>
+          <option value="b2b_pyme">B2B SMB</option>
+          <option value="b2b_enterprise">B2B Enterprise</option>
+          <option value="b2c">B2C</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Number of Solutions</label>
+        <input type="number" id="num_solutions" value="3" min="1" max="6" />
+      </div>
+    </div>
+    <button class="btn-run" id="btn-run" onclick="startSimulation()">&#9654; Run Simulation</button>
+  </div>
+
+  <!-- Pipeline status -->
+  <div class="section hidden" id="pipeline-section">
+    <div class="section-title">Pipeline</div>
+    <div class="pipeline">
+      <div class="stage" id="stage-context">
+        <div class="stage-dot"></div>
+        <span class="stage-label">Context</span>
+      </div>
+      <div class="stage" id="stage-personas">
+        <div class="stage-dot"></div>
+        <span class="stage-label">Personas</span>
+        <span class="stage-sub" id="stage-personas-sub"></span>
+      </div>
+      <div class="stage" id="stage-interviews">
+        <div class="stage-dot"></div>
+        <span class="stage-label">Interviews</span>
+        <span class="stage-sub" id="stage-interviews-sub"></span>
+      </div>
+      <div class="stage" id="stage-analysis">
+        <div class="stage-dot"></div>
+        <span class="stage-label">Analysis</span>
+      </div>
+    </div>
+    <div class="elapsed hidden" id="elapsed"></div>
+  </div>
+
+  <!-- Personas -->
+  <div class="section hidden" id="personas-section">
+    <div class="section-title">Personas</div>
+    <div class="personas-grid" id="personas-grid"></div>
+  </div>
+
+  <!-- Interviews -->
+  <div class="section hidden" id="interviews-section">
+    <div class="section-title">Interviews</div>
+    <div class="interviews-grid" id="interviews-grid"></div>
+  </div>
+
+  <!-- Analysis -->
+  <div class="section hidden" id="analysis-section">
+    <div class="section-title">Analysis Results</div>
+    <div id="analysis-content"></div>
+  </div>
+
+</div>
+
+<!-- Persona detail modal -->
+<div class="modal-overlay hidden" id="modal" onclick="closeModal(event)">
+  <div class="modal-box" id="modal-box">
+    <button class="modal-close" onclick="document.getElementById('modal').classList.add('hidden'); activeModalType=null; activeModalIdx=null;">&#x2715;</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<script>
+  let source = null;
+
+  // ── State ──────────────────────────────────────────
+  let personaCount = 0;
+  let personaTotal = 0;
+  let personaStore = {};     // index -> full persona data
+  let interviewStore = {};   // index -> { persona_name, archetype, log: [] }
+  let activeModalType = null; // 'persona' | 'interview' | null
+  let activeModalIdx = null;
+
+  // ── Helpers ────────────────────────────────────────
+  function show(id) { document.getElementById(id).classList.remove('hidden'); }
+  function hide(id) { document.getElementById(id).classList.add('hidden'); }
+
+  function setStage(stageName, state) {
+    // state: 'active' | 'done' | ''
+    const el = document.getElementById('stage-' + stageName);
+    if (!el) return;
+    el.classList.remove('active', 'done');
+    if (state) el.classList.add(state);
+  }
+
+  function esc(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  // ── Start ──────────────────────────────────────────
+  function startSimulation() {
+    if (source) { source.close(); source = null; }
+
+    // Reset state
+    personaCount = 0; personaTotal = 0;
+    personaStore = {}; interviewStore = {}; activeModalType = null; activeModalIdx = null;
+    document.getElementById('personas-grid').innerHTML = '';
+    document.getElementById('interviews-grid').innerHTML = '';
+    document.getElementById('analysis-content').innerHTML = '';
+    document.getElementById('stage-personas-sub').textContent = '';
+    document.getElementById('stage-interviews-sub').textContent = '';
+    document.getElementById('elapsed').classList.add('hidden');
+    ['context','personas','interviews','analysis'].forEach(s => setStage(s, ''));
+
+    // Show pipeline
+    show('pipeline-section');
+
+    // Build URL
+    const params = new URLSearchParams({
+      industry:        document.getElementById('industry').value,
+      location:        document.getElementById('location').value,
+      founder_profile: document.getElementById('founder_profile').value,
+      time_months:     document.getElementById('time_months').value,
+      capital:         document.getElementById('capital').value,
+      solution_type:   document.getElementById('solution_type').value,
+      market_target:   document.getElementById('market_target').value,
+      num_solutions:   document.getElementById('num_solutions').value,
+    });
+
+    document.getElementById('btn-run').disabled = true;
+
+    source = new EventSource('/api/simulate?' + params.toString());
+
+    source.addEventListener('stage_start',             e => onStageStart(JSON.parse(e.data)));
+    source.addEventListener('stage_complete',           e => onStageComplete(JSON.parse(e.data)));
+    source.addEventListener('context_ready',            e => onContextReady(JSON.parse(e.data)));
+    source.addEventListener('persona_created',          e => onPersonaCreated(JSON.parse(e.data)));
+    source.addEventListener('interview_start',          e => onInterviewStart(JSON.parse(e.data)));
+    source.addEventListener('interview_phase_complete', e => onInterviewPhase(JSON.parse(e.data)));
+    source.addEventListener('interview_complete',       e => onInterviewComplete(JSON.parse(e.data)));
+    source.addEventListener('analysis_start',           e => onAnalysisStart());
+    source.addEventListener('analysis_complete',        e => onAnalysisComplete(JSON.parse(e.data)));
+    source.addEventListener('simulation_complete',      e => onSimulationComplete(JSON.parse(e.data)));
+    source.addEventListener('error',                    e => onError(JSON.parse(e.data)));
+    source.onerror = () => {
+      document.getElementById('btn-run').disabled = false;
+      source.close();
+    };
+  }
+
+  // ── Event handlers ─────────────────────────────────
+
+  function onStageStart(data) {
+    setStage(data.stage, 'active');
+  }
+
+  function onStageComplete(data) {
+    setStage(data.stage, 'done');
+  }
+
+  function onContextReady(data) {
+    // Stage indicator already handled by stage_start / stage_complete
+  }
+
+  function onPersonaCreated(data) {
+    personaTotal = data.total;
+    personaCount++;
+    show('personas-section');
+
+    const p = data.persona;
+    const idx = data.index;
+    personaStore[idx] = p;
+
+    const card = document.createElement('div');
+    card.className = 'persona-card';
+    card.setAttribute('onclick', `openPersonaModal(${idx})`);
+    card.innerHTML = `
+      <div class="pname">${esc(p.name || '—')}</div>
+      <div class="ptitle">${esc(p.title || '')}</div>
+      <div class="pcompany">${esc(p.company || '')}</div>
+      <div class="archetype-tag">${esc(p.archetype || '')}</div>
+    `;
+    document.getElementById('personas-grid').appendChild(card);
+    document.getElementById('stage-personas-sub').textContent = `${personaCount}/${personaTotal}`;
+  }
+
+  function onInterviewStart(data) {
+    const idx = data.persona_index;
+    interviewStore[idx] = { persona_name: data.persona_name, archetype: data.archetype, log: [] };
+    show('interviews-section');
+
+    const card = document.createElement('div');
+    card.className = 'interview-card running';
+    card.id = `icard-${idx}`;
+    card.setAttribute('onclick', `openInterviewModal(${idx})`);
+    card.innerHTML = `
+      <div class="ic-header">
+        <div class="pulse-dot" id="idot-${idx}"></div>
+        <div class="ic-name">${esc(data.persona_name)}</div>
+      </div>
+      <div class="ic-archetype">${esc(data.archetype)}</div>
+      <div class="ic-progress" id="iprog-${idx}">phase 0/${data.phase_total ?? 8}</div>
+    `;
+    document.getElementById('interviews-grid').appendChild(card);
+  }
+
+  function onInterviewPhase(data) {
+    const idx = data.persona_index;
+    if (interviewStore[idx]) {
+      interviewStore[idx].log.push({
+        phase: data.phase, question: data.question, answer: data.answer
+      });
+    }
+
+    // Update card progress
+    const prog = document.getElementById(`iprog-${idx}`);
+    if (prog) prog.textContent = `phase ${data.phase_index + 1}/${data.phase_total}`;
+
+    // Update pipeline sub-label
+    document.getElementById('stage-interviews-sub').textContent =
+      `persona ${idx + 1}/${personaTotal} · phase ${data.phase_index + 1}/${data.phase_total}`;
+
+    // If this interview's modal is open, append the phase live
+    if (activeModalType === 'interview' && activeModalIdx === idx) {
+      const log = document.getElementById('interview-modal-log');
+      if (log) {
+        appendPhaseBlock(data, log);
+        document.getElementById('modal-box').scrollTop = document.getElementById('modal-box').scrollHeight;
+      }
+    }
+  }
+
+  function onInterviewComplete(data) {
+    const idx = data.persona_index;
+    const dot = document.getElementById(`idot-${idx}`);
+    const card = document.getElementById(`icard-${idx}`);
+    if (dot) dot.classList.add('done');
+    if (card) { card.classList.remove('running'); card.classList.add('done'); }
+  }
+
+  function onAnalysisStart() {
+    // stage_start already activates the indicator
+  }
+
+  function onAnalysisComplete(data) {
+    show('analysis-section');
+    const container = document.getElementById('analysis-content');
+
+    const diffClass = d => {
+      if (d === 'low') return 'diff-low';
+      if (d === 'high') return 'diff-high';
+      return 'diff-medium';
+    };
+
+    const solutions = (data.solutions || []).map(s => `
+      <div class="solution-card">
+        <div class="solution-title">${esc(s.title)}</div>
+        <div class="solution-desc">${esc(s.description)}</div>
+        <div class="solution-meta">
+          <span class="diff-badge ${diffClass(s.mvp_difficulty)}">${esc(s.mvp_difficulty)}</span>
+          <span class="solution-time">${esc(s.mvp_time_estimate)}</span>
+        </div>
+        <div class="solution-rationale">${esc(s.rationale)}</div>
+      </div>
+    `).join('');
+
+    const risks = (data.main_risks || []).map(r => `<li>${esc(r)}</li>`).join('');
+
+    container.innerHTML = `
+      <div class="analysis-card">
+        <div class="analysis-field">
+          <div class="analysis-field-label">Main Problem</div>
+          <div class="analysis-field-value">${esc(data.main_problem || '')}</div>
+        </div>
+        <div class="analysis-field">
+          <div class="analysis-field-label">Target Market</div>
+          <div class="analysis-field-value">${esc(data.target_market || '')}</div>
+        </div>
+        <div class="analysis-field">
+          <div class="analysis-field-label">Market Size Estimate</div>
+          <div class="analysis-field-value">${esc(data.market_size_estimate || '')}</div>
+        </div>
+        <div class="analysis-field">
+          <div class="analysis-field-label">Competitive Landscape</div>
+          <div class="analysis-field-value">${esc(data.competitive_landscape || '')}</div>
+        </div>
+        <div class="analysis-field">
+          <div class="analysis-field-label">Monetization Model</div>
+          <div class="analysis-field-value">${esc(data.monetization_model || '')}</div>
+        </div>
+        <div class="analysis-field">
+          <div class="analysis-field-label">Main Risks</div>
+          <ul class="risks-list">${risks}</ul>
+        </div>
+        <div class="analysis-field">
+          <div class="analysis-field-label">Solutions</div>
+          <div class="solutions-grid">${solutions}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function onSimulationComplete(data) {
+    document.getElementById('btn-run').disabled = false;
+    const elapsed = document.getElementById('elapsed');
+    elapsed.textContent = `Completed in ${data.elapsed_seconds}s`;
+    elapsed.classList.remove('hidden');
+    if (source) { source.close(); source = null; }
+  }
+
+  function onError(data) {
+    console.error('Simulation error:', data);
+    document.getElementById('btn-run').disabled = false;
+    if (source) { source.close(); source = null; }
+  }
+
+  // ── Interview modal ─────────────────────────────────
+
+  function appendPhaseBlock(entry, container) {
+    const block = document.createElement('div');
+    block.className = 'phase-block';
+    block.innerHTML = `
+      <div class="phase-label">${esc(entry.phase)}</div>
+      <div class="qa-q">Q: ${esc(entry.question)}</div>
+      <div class="qa-a">${esc(entry.answer)}</div>
+    `;
+    container.appendChild(block);
+  }
+
+  function openInterviewModal(index) {
+    const iv = interviewStore[index];
+    if (!iv) return;
+    activeModalType = 'interview';
+    activeModalIdx = index;
+
+    const content = document.getElementById('modal-content');
+    content.innerHTML = `
+      <div class="modal-archetype"><span class="archetype-tag">${esc(iv.archetype || '')}</span></div>
+      <div class="modal-name">${esc(iv.persona_name || '—')}</div>
+      <hr class="modal-divider"/>
+      <div id="interview-modal-log"></div>
+    `;
+
+    const log = document.getElementById('interview-modal-log');
+    iv.log.forEach(entry => appendPhaseBlock(entry, log));
+
+    document.getElementById('modal').classList.remove('hidden');
+    document.getElementById('modal-box').scrollTop = document.getElementById('modal-box').scrollHeight;
+  }
+
+  // ── Persona modal ───────────────────────────────────
+
+  function row(label, value) {
+    if (!value) return '';
+    return `
+      <div class="modal-row">
+        <div class="modal-row-label">${label}</div>
+        <div class="modal-row-value">${esc(value)}</div>
+      </div>`;
+  }
+
+  function openPersonaModal(index) {
+    const p = personaStore[index];
+    if (!p) return;
+    activeModalType = 'persona';
+    activeModalIdx = index;
+
+    document.getElementById('modal-content').innerHTML = `
+      <div class="modal-archetype"><span class="archetype-tag">${esc(p.archetype || '')}</span></div>
+      <div class="modal-name">${esc(p.name || '—')}</div>
+      <div class="modal-subtitle">${esc(p.title || '')} &mdash; ${esc(p.company || '')}</div>
+      <hr class="modal-divider"/>
+      ${row('Age', p.age)}
+      ${row('Gender', p.gender)}
+      ${row('Profession', p.profession)}
+      ${row('Location', p.location)}
+      ${row('Industry', p.industry)}
+      <hr class="modal-divider"/>
+      ${row('Experience', p.years_of_experience ? p.years_of_experience + ' years' : '')}
+      ${row('Company Size', p.company_size ? p.company_size + ' employees' : '')}
+      ${row('Team Size', p.team_size)}
+      ${row('Company ARR', p.company_arr)}
+      <hr class="modal-divider"/>
+      ${row('Education', p.education)}
+      ${row('Key Skills', p.key_skills)}
+      ${row('Interests', p.interests)}
+      <hr class="modal-divider"/>
+      ${row('LinkedIn', p.linkedin_summary)}
+    `;
+
+    document.getElementById('modal').classList.remove('hidden');
+  }
+
+  function closeModal(event) {
+    if (event.target === document.getElementById('modal')) {
+      document.getElementById('modal').classList.add('hidden');
+      activeModalType = null; activeModalIdx = null;
+    }
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.getElementById('modal').classList.add('hidden');
+      activeModalType = null; activeModalIdx = null;
+    }
+  });
+</script>
+</body>
+</html>

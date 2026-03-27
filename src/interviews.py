@@ -95,7 +95,7 @@ def _ask(persona, question, conversation_history):
     response = client.chat.completions.create(
         model=LLM_MODEL,
         messages=[{"role": "system", "content": system_prompt}] + conversation_history,
-        max_tokens=300,
+        max_tokens=600,
         n=1,
         stop=None,
     )
@@ -104,7 +104,7 @@ def _ask(persona, question, conversation_history):
     return answer
 
 
-def conduct_interview(persona, context):
+def conduct_interview(persona, context, event_callback=None, persona_index=0):
     """
     Conducts a structured interview with a synthetic persona.
 
@@ -119,18 +119,30 @@ def conduct_interview(persona, context):
     name = persona.get('name', 'N/A')
     position = persona.get('title', 'profesional')
     industry = context.get('industry', 'tu industria')
+    total_phases = len(INTERVIEW_PHASES)
 
-    for i, phase_config in enumerate(INTERVIEW_PHASES, start=1):
+    for i, phase_config in enumerate(INTERVIEW_PHASES):
         phase = phase_config["phase"]
         question = phase_config["question"].format(
             name=name, position=position, industry=industry
         )
 
-        print(f"\n  [{i}] {question}")
+        print(f"\n  [{i + 1}] {question}")
         try:
             answer = _ask(persona, question, conversation_history)
             print(f"  Respuesta: {answer}")
             interview_log.append({"phase": phase, "question": question, "answer": answer})
+
+            if event_callback:
+                event_callback("interview_phase_complete", {
+                    "persona_index": persona_index,
+                    "persona_name": name,
+                    "phase_index": i,
+                    "phase_total": total_phases,
+                    "phase": phase,
+                    "question": question,
+                    "answer": answer,
+                })
 
         except Exception as e:
             print(f"  Error en fase '{phase}': {e}")

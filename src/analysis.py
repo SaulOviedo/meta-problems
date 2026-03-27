@@ -19,7 +19,7 @@ def _build_transcript(log):
 
 
 def analyze_interviews(interviews_list, founder_profile, time_months, capital,
-                       solution_type, market_target, num_solutions):
+                       solution_type, market_target, num_solutions, event_callback=None):
     """
     Analyzes multiple interview logs in a single LLM call to surface common
     pain points and validate which problems are systemic across personas.
@@ -98,7 +98,12 @@ Responde ÚNICAMENTE con un objeto JSON válido (sin markdown, sin explicaciones
     if match:
         raw = match.group(1)
 
-    return json.loads(raw)
+    result = json.loads(raw)
+
+    if event_callback:
+        event_callback("analysis_complete", result)
+
+    return result
 
 
 if __name__ == "__main__":
