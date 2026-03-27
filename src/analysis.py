@@ -18,19 +18,24 @@ def _build_transcript(log):
     return "\n".join(lines)
 
 
-def analyze_interview(interview_data, founder_profile, time_months, capital,
-                      solution_type, market_target, num_solutions):
+def analyze_interviews(interviews_list, founder_profile, time_months, capital,
+                       solution_type, market_target, num_solutions):
     """
-    Analyzes a full interview log and returns a structured opportunity assessment.
+    Analyzes multiple interview logs in a single LLM call to surface common
+    pain points and validate which problems are systemic across personas.
     """
-    persona = interview_data.get("persona", {})
-    log = interview_data.get("log", [])
+    combined_transcript = ""
+    for interview_data in interviews_list:
+        persona = interview_data.get("persona", {})
+        log = interview_data.get("log", [])
+        label = f"{persona.get('name', 'Unknown')} | {persona.get('archetype', '')} | {persona.get('title', '')}"
+        combined_transcript += f"=== ENTREVISTA: {label} ===\n"
+        combined_transcript += _build_transcript(log)
+        combined_transcript += "\n"
 
-    transcript = _build_transcript(log)
-
-    persona_summary = ", ".join(
-        f"{k}: {v}" for k, v in persona.items()
-        if k in ("name", "archetype", "industry", "company", "title", "company_size", "company_arr")
+    personas_summary = "; ".join(
+        f"{iv.get('persona', {}).get('name', '?')} ({iv.get('persona', {}).get('archetype', '?')})"
+        for iv in interviews_list
     )
 
     market_target_label = market_target if market_target != "sin_preferencia" else "no preference (explore all)"
@@ -38,13 +43,13 @@ def analyze_interview(interview_data, founder_profile, time_months, capital,
 
     prompt = f"""Eres un analista experto en startups y evaluación de oportunidades de negocio.
 
-A continuación se presenta la transcripción de una entrevista simulada con un profesional de la industria, seguida de las restricciones del fundador.
+A continuación se presentan {len(interviews_list)} entrevistas simuladas con distintos profesionales de la industria, seguidas de las restricciones del fundador. Tu objetivo es identificar problemas RECURRENTES y SISTÉMICOS que aparezcan en múltiples entrevistas, validando cuáles tienen mayor potencial de mercado.
 
 ---
-PERSONA: {persona_summary}
+PERSONAS ENTREVISTADAS: {personas_summary}
 
-TRANSCRIPCIÓN DE LA ENTREVISTA:
-{transcript}
+TRANSCRIPCIONES:
+{combined_transcript}
 ---
 
 PERFIL DEL FUNDADOR:
@@ -56,12 +61,12 @@ PERFIL DEL FUNDADOR:
 
 ---
 
-Basándote en la entrevista, produce un análisis estructurado de la oportunidad. Genera exactamente {num_solutions} soluciones, ordenadas de más a menos prometedora según las restricciones del fundador.
+Basándote en TODAS las entrevistas, produce un análisis estructurado que identifique patrones comunes. Genera exactamente {num_solutions} soluciones, ordenadas de más a menos prometedora según las restricciones del fundador.
 
 Responde ÚNICAMENTE con un objeto JSON válido (sin markdown, sin explicaciones) que siga exactamente este esquema:
 
 {{
-  "main_problem": "One clear sentence describing the core pain point.",
+  "main_problem": "One clear sentence describing the core recurring pain point across interviews.",
   "target_market": "Description of who specifically has this problem (company size, role, industry).",
   "market_size_estimate": "Rough TAM/SAM estimate with reasoning.",
   "competitive_landscape": "Existing solutions and why they fall short.",
@@ -89,7 +94,6 @@ Responde ÚNICAMENTE con un objeto JSON válido (sin markdown, sin explicaciones
 
     raw = response.choices[0].message.content.strip()
 
-    # Strip markdown code block if present
     match = re.search(r"```(?:json)?\s*([\s\S]+?)\s*```", raw)
     if match:
         raw = match.group(1)
@@ -102,8 +106,8 @@ if __name__ == "__main__":
     import os
 
     parser = argparse.ArgumentParser(description="Stage 4: Analyze interview and identify opportunities")
-    parser.add_argument("--input", default="data/outputs/interviews_output.json",
-                        help="Path to interviews output JSON (default: data/outputs/interviews_output.json)")
+    parser.add_argument("--input", default="data/fixtures/interviews.json",
+                        help="Path to interviews output JSON (default: data/fixtures/interviews.json)")
     parser.add_argument("--output", default="data/outputs/analysis_output.json",
                         help="Path to write the output JSON (default: data/outputs/analysis_output.json)")
     parser.add_argument("--founder-profile", choices=["tecnico", "no_tecnico"], default="tecnico",
@@ -125,14 +129,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     with open(args.input, encoding="utf-8") as f:
-        interview_data = json.load(f)
+        interviews = json.load(f)
 
-    print(f"Analyzing interview for: {interview_data.get('persona', {}).get('name', 'unknown')}")
+    print(f"Analyzing {len(interviews)} interview(s): "
+          + ", ".join(iv.get("persona", {}).get("name", "?") for iv in interviews))
     print(f"Founder profile: {args.founder_profile} | {args.time_months}mo | {args.capital} | "
           f"{args.solution_type} | {args.market_target} | {args.num_solutions} solutions\n")
 
-    result = analyze_interview(
-        interview_data=interview_data,
+    result = analyze_interviews(
+        interviews_list=interviews,
         founder_profile=args.founder_profile,
         time_months=args.time_months,
         capital=args.capital,

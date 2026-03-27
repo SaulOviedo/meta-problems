@@ -149,8 +149,8 @@ if __name__ == "__main__":
                         help="Path to personas JSON (default: data/fixtures/personas.json)")
     parser.add_argument("--context", default="data/fixtures/context.json",
                         help="Path to context JSON (default: data/fixtures/context.json)")
-    parser.add_argument("--persona-index", type=int, default=0,
-                        help="Index of the persona to interview from the personas array (default: 0)")
+    parser.add_argument("--persona-index", type=int, default=None,
+                        help="Index of the persona to interview (default: all personas)")
     parser.add_argument("--output", default="data/outputs/interviews_output.json",
                         help="Path to write the output JSON (default: data/outputs/interviews_output.json)")
     args = parser.parse_args()
@@ -160,16 +160,20 @@ if __name__ == "__main__":
     with open(args.context, encoding="utf-8") as f:
         context = json.load(f)
 
-    persona = personas[args.persona_index]
-    print(f"Interviewing: {persona.get('name')} ({persona.get('archetype')}) @ {persona.get('company')}")
+    if args.persona_index is not None:
+        targets = [personas[args.persona_index]]
+    else:
+        targets = personas
 
-    interview_log = conduct_interview(persona, context)
-
-    result = {"persona": persona, "log": interview_log}
+    results = []
+    for persona in targets:
+        print(f"\nInterviewing: {persona.get('name')} ({persona.get('archetype')}) @ {persona.get('company')}")
+        interview_log = conduct_interview(persona, context)
+        results.append({"persona": persona, "log": interview_log})
+        print(f"  Interview complete: {len(interview_log)} exchanges")
 
     os.makedirs(os.path.dirname(args.output), exist_ok=True)
     with open(args.output, "w", encoding="utf-8") as f:
-        json.dump(result, f, ensure_ascii=False, indent=2)
+        json.dump(results, f, ensure_ascii=False, indent=2)
 
-    print(f"\nInterview complete: {len(interview_log)} exchanges")
-    print(f"\n✓ Output saved to {args.output}")
+    print(f"\n✓ {len(results)} interview(s) saved to {args.output}")
