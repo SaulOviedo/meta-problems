@@ -1,11 +1,14 @@
 # src/simulation.py
 
 from .personas import generate_personas
-from .interviews import conduct_interview, extract_problem_from_answer
-from .analysis import analyze_problems
+from .interviews import conduct_interview
+from .analysis import analyze_interviews
 from .config import PERSONA_ARCHETYPES
 
-def run_simulation(context):
+
+def run_simulation(context, founder_profile="tecnico", time_months=2,
+                   capital="bootstrapped", solution_type="sin_preferencia",
+                   market_target="sin_preferencia", num_solutions=3):
     """
     Runs the full simulation for a given context.
     Returns a dictionary with the full simulation data.
@@ -13,33 +16,33 @@ def run_simulation(context):
     print(f"\nIniciando simulación para la industria: {context['industry']} en {context['location']}")
 
     # 1. Generación de Personas Sintéticas
-    num_personas = len(PERSONA_ARCHETYPES)
-    personas = generate_personas(context, list(PERSONA_ARCHETYPES.keys()), num_personas)
+    personas = generate_personas(context, list(PERSONA_ARCHETYPES.keys()), len(PERSONA_ARCHETYPES))
     print(f"Se generaron {len(personas)} personas sintéticas.")
 
     # 2. Entrevistas de Fricción
     interviews = []
-    all_problems = []
     for persona in personas:
         print(f"\nEntrevistando a: {persona['name']} ({persona['archetype']})")
-        interview_log = conduct_interview(persona, context)
-        interviews.append({"persona": persona, "log": interview_log})
-        
-        # Extract problems from the interview log
-        for entry in interview_log:
-            problem = extract_problem_from_answer(entry['answer'])
-            if problem:
-                all_problems.append(problem)
+        log = conduct_interview(persona, context)
+        interviews.append({"persona": persona, "log": log})
 
-    # 3. Análisis y Filtrado de Problemas
-    high_value_problems = []
-    if all_problems:
+    # 3. Análisis de Entrevistas
+    analysis = {}
+    if interviews:
         print("\nAnalizando problemas identificados...")
-        high_value_problems = analyze_problems(all_problems)
-    
+        analysis = analyze_interviews(
+            interviews_list=interviews,
+            founder_profile=founder_profile,
+            time_months=time_months,
+            capital=capital,
+            solution_type=solution_type,
+            market_target=market_target,
+            num_solutions=num_solutions,
+        )
+
     return {
         "industry": context['industry'],
         "location": context['location'],
         "interviews": interviews,
-        "high_value_problems": high_value_problems
+        "analysis": analysis,
     }

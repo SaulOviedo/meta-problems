@@ -117,7 +117,7 @@ def conduct_interview(persona, context):
     conversation_history = []  # maintains full dialogue context across turns
 
     name = persona.get('name', 'N/A')
-    position = persona.get('current_position', 'profesional')
+    position = persona.get('title', 'profesional')
     industry = context.get('industry', 'tu industria')
 
     for i, phase_config in enumerate(INTERVIEW_PHASES, start=1):
